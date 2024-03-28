@@ -5,6 +5,38 @@
 #include "VMX.h"
 #include "EPT.h"
 
+NTSTATUS DrvStartVt()
+{
+    //
+    // *** Start Virtualizing Current System ***
+    //
+
+    //
+    // Initiating EPTP and VMX
+    //
+    PEPTP EPTP = InitializeEptp();
+    InitializeVmx();
+
+    int LogicalProcessorsCount = KeQueryActiveProcessorCount(0);
+
+    for (size_t i = 0; i < LogicalProcessorsCount; i++)
+    {
+        // Launching VM for Test (in the all logical processor)
+        int ProcessorID = i;
+
+        // Allocating VMM Stack
+        AllocateVmmStack(ProcessorID);
+
+        // Allocating MSR Bit
+        AllocateMsrBitmap(ProcessorID);
+
+        RunOnProcessor(i, EPTP, VmxSaveState);
+        DbgPrint("\n======================================================================================================\n", ProcessorID);
+    }
+
+    return STATUS_SUCCESS;
+}
+
 NTSTATUS
 DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
 {
@@ -36,6 +68,8 @@ DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath)
         DriverObject->DriverUnload = DrvUnload;
         IoCreateSymbolicLink(&DosDeviceName, &DriverName);
     }
+
+    DrvStartVt();
 
     return NtStatus;
 }

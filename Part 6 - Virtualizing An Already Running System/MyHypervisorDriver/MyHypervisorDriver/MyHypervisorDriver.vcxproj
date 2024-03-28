@@ -63,6 +63,9 @@
       <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
       <EntryPointSymbol>DriverEntry</EntryPointSymbol>
     </Link>
+    <DriverSign>
+      <AdditionalOptions>/fd sha256 %(AdditionalOptions)</AdditionalOptions>
+    </DriverSign>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
